@@ -45,7 +45,7 @@ const Header = () => {
         <div className="flex items-center justify-between py-4">
           {/* ✅ Logo - Link to home */}
           <Link to="/" className="flex items-center space-x-2 h-auto">
-            <img src={logo} alt="Bakliv Logo" className="h-[57px] w-auto" />
+            <img src={logo} alt="Bakliv Logo" className="h-[49px] w-auto" />
           </Link>
 
           {/* Desktop Navigation */}
