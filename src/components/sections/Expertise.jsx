@@ -2,8 +2,8 @@ import React from 'react';
 import { Award, Stethoscope } from 'lucide-react';
 
 // Centralized image imports
-import doctorImage from '../assets/young-doctor-getting-ready-work-scaled.webp';
-import paediatricianImage from '../assets/male-working-as-paediatrician-1-scaled.webp';
+import doctorImage from '../../assets/young-doctor-getting-ready-work-scaled.webp';
+import paediatricianImage from '../../assets/male-working-as-paediatrician-1-scaled.webp';
 
 const Section = ({ children, background, className }) => (
   <section className={`${background === 'white' ? 'bg-white' : 'bg-gray-50'} ${className}`}>
