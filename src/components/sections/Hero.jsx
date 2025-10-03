@@ -3,13 +3,19 @@ import { Phone } from 'lucide-react';
 import Section from '../ui/Section';
 import Expertise from './Expertise';
 
+// Centralized image imports
+import heroImage1 from '../../assets/front-view-nurses-team-hospital-scaled.webp';
+import heroImage2 from '../../assets/male-working-as-paediatrician-1-scaled.webp';
+import heroImage3 from '../../assets/man-working-as-pharmacist-scaled.webp';
+import pharmacistImage from '../../assets/man-working-as-pharmacist-scaled.webp';
+
 const Hero = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
 
   const backgroundImages = [
-    '../src/assets/front-view-nurses-team-hospital-scaled.webp',
-    '../src/assets/male-working-as-paediatrician-1-scaled.webp',
-    '../src/assets/man-working-as-pharmacist-scaled.webp'
+    heroImage1,
+    heroImage2,
+    heroImage3
   ];
 
   useEffect(() => {
@@ -168,7 +174,7 @@ const Hero = () => {
             <div className="hidden lg:flex justify-center lg:justify-end">
               <div className="w-full max-w-md lg:max-w-lg">
                 <img 
-                  src="../src/assets/man-working-as-pharmacist-scaled.webp" 
+                  src={pharmacistImage}
                   alt="Pharmaceutical researcher examining colorful medicine capsules in glass containers"
                   className="w-full h-auto object-cover rounded-lg shadow-lg"
                 />

@@ -2,6 +2,11 @@ import React from 'react';
 import Section from '../ui/Section';
 import Card from '../ui/Card';
 
+// Centralized image imports
+import missionImage from '../assets/male-working-as-paediatrician-1-scaled.webp';
+import visionImage from '../assets/front-view-nurses-team-hospital-scaled.webp';
+import valuesImage from '../assets/view-vials-medicine-arrangement-scaled.webp';
+
 const Mission = () => {
   return (
     <Section background="default" className="py-16">
@@ -15,13 +20,12 @@ const Mission = () => {
         {/* Our Mission */}
         <div className="text-center">
           <div className="mb-6">
-            <div className="w-full h-48 bg-gradient-to-br from-blue-100 to-blue-200 rounded-lg flex items-center justify-center mb-4">
-              <div className="text-center text-blue-700">
-                <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-3 shadow-lg">
-                  <span className="text-2xl">🎯</span>
-                </div>
-                <p className="text-sm font-semibold">Healthcare Team</p>
-              </div>
+            <div className="w-full h-48 bg-gradient-to-br from-blue-100 to-blue-200 rounded-lg flex items-center justify-center mb-4 overflow-hidden">
+              <img 
+                src={missionImage}
+                alt="Our Mission" 
+                className="w-full h-full object-cover"
+              />
             </div>
           </div>
           <h3 className="text-lg font-semibold text-gray-900 mb-3">Our Mission</h3>
@@ -34,13 +38,12 @@ const Mission = () => {
         {/* Our Vision */}
         <div className="text-center">
           <div className="mb-6">
-            <div className="w-full h-48 bg-gradient-to-br from-green-100 to-green-200 rounded-lg flex items-center justify-center mb-4">
-              <div className="text-center text-green-700">
-                <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-3 shadow-lg">
-                  <span className="text-2xl">👩‍⚕️</span>
-                </div>
-                <p className="text-sm font-semibold">Medical Excellence</p>
-              </div>
+            <div className="w-full h-48 bg-gradient-to-br from-green-100 to-green-200 rounded-lg flex items-center justify-center mb-4 overflow-hidden">
+              <img 
+                src={visionImage}
+                alt="Our Vision" 
+                className="w-full h-full object-cover"
+              />
             </div>
           </div>
           <h3 className="text-lg font-semibold text-gray-900 mb-3">Our Vision</h3>
@@ -53,13 +56,12 @@ const Mission = () => {
         {/* Our Core Values */}
         <div className="text-center">
           <div className="mb-6">
-            <div className="w-full h-48 bg-gradient-to-br from-purple-100 to-purple-200 rounded-lg flex items-center justify-center mb-4">
-              <div className="text-center text-purple-700">
-                <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-3 shadow-lg">
-                  <span className="text-2xl">💊</span>
-                </div>
-                <p className="text-sm font-semibold">Pharmaceutical Innovation</p>
-              </div>
+            <div className="w-full h-48 bg-gradient-to-br from-purple-100 to-purple-200 rounded-lg flex items-center justify-center mb-4 overflow-hidden">
+              <img 
+                src={valuesImage}
+                alt="Our Core Values" 
+                className="w-full h-full object-cover"
+              />
             </div>
           </div>
           <h3 className="text-lg font-semibold text-gray-900 mb-3">Our Core Values</h3>

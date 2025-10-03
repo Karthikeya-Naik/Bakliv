@@ -3,6 +3,13 @@ import { CheckCircle, Target, Heart, Lightbulb } from 'lucide-react';
 import Section from '../ui/Section';
 import Card from '../ui/Card';
 
+// Centralized image imports
+import heroImage from '../../assets/front-view-nurses-team-hospital-scaled.webp';
+import doctorImage from '../../assets/young-doctor-getting-ready-work-scaled.webp';
+import missionImage from '../../assets/male-working-as-paediatrician-1-scaled.webp';
+import visionImage from '../../assets/front-view-nurses-team-hospital-scaled.webp';
+import valuesImage from '../../assets/view-vials-medicine-arrangement-scaled.webp';
+
 const About = () => {
   const values = [
     {
@@ -35,7 +42,7 @@ const About = () => {
         <div 
           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
           style={{
-            backgroundImage: 'url("src/assets/front-view-nurses-team-hospital-scaled.webp")',
+            backgroundImage: `url(${heroImage})`,
             backgroundPosition: 'center 30%'
           }}
         />
@@ -98,7 +105,7 @@ const About = () => {
             <div className="hidden lg:flex animate-fade-in justify-center">
               <div className="w-full max-w-[560px]">
                 <img 
-                  src="src/assets/young-doctor-getting-ready-work-scaled.webp" 
+                  src={doctorImage}
                   alt="Healthcare Professional" 
                   className="w-full h-auto object-cover rounded-lg shadow-lg"
                 />
@@ -123,7 +130,7 @@ const About = () => {
             <Card className="text-center animate-fade-in-up overflow-hidden group cursor-pointer mt-0 flex flex-col">
               <div className="overflow-hidden">
                 <img 
-                  src="src/assets/male-working-as-paediatrician-1-scaled.webp" 
+                  src={missionImage}
                   alt="Our Mission" 
                   className="w-full h-56 object-cover transition-transform duration-300 group-hover:scale-110"
                 />
@@ -143,7 +150,7 @@ const About = () => {
             <Card className="text-center animate-fade-in-up overflow-hidden group cursor-pointer p-0 flex flex-col" style={{ animationDelay: '0.1s' }}>
               <div className="overflow-hidden">
                 <img 
-                  src="src/assets/front-view-nurses-team-hospital-scaled.webp" 
+                  src={visionImage}
                   alt="Our Vision" 
                   className="w-full h-56 object-cover transition-transform duration-300 group-hover:scale-110"
                 />
@@ -163,7 +170,7 @@ const About = () => {
             <Card className="text-center animate-fade-in-up overflow-hidden group cursor-pointer p-0 flex flex-col" style={{ animationDelay: '0.2s' }}>
               <div className="overflow-hidden">
                 <img 
-                  src="src/assets/view-vials-medicine-arrangement-scaled.webp" 
+                  src={valuesImage}
                   alt="Our Core Values" 
                   className="w-full h-56 object-cover transition-transform duration-300 group-hover:scale-110"
                 />

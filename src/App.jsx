@@ -18,7 +18,6 @@ import ProductEdit from './pages/admin/ProductEdit';
 import ContactsList from './pages/admin/ContactsList';
 import ProtectedRoute from './components/admin/ProtectedRoute';
 import AdminLayout from './components/admin/AdminLayout';
-import DebugProtectedRoute from './components/admin/DebugProtectedRoute';
 
 
 // Context Provider
