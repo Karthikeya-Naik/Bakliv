@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Phone } from 'lucide-react';
 import Section from '../ui/Section';
 import Expertise from './Expertise';
+import { Link, useLocation } from 'react-router-dom';
 
 // Centralized image imports
 import heroImage1 from '../../assets/front-view-nurses-team-hospital-scaled.webp';
@@ -83,7 +84,8 @@ const Hero = () => {
                   }}
                 >
                   <Phone className="mr-2 h-4 w-4" />
-                  Contact Us
+                  <Link to="/contact">Contact Us</Link>
+                  
                 </button>
               </div>
             </div>

@@ -5,12 +5,15 @@ import { productService } from '../../services/productService';
 
 const ProductsList = () => {
   const [products, setProducts] = useState([]);
+  const [allProducts, setAllProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [pagination, setPagination] = useState({
     current_page: 1,
     total_pages: 1,
     total: 0,
+    has_prev: false,
+    has_next: false,
   });
   const [deleteConfirm, setDeleteConfirm] = useState(null);
   
@@ -18,20 +21,31 @@ const ProductsList = () => {
 
   useEffect(() => {
     fetchProducts();
-  }, [pagination.current_page, searchTerm]);
+  }, []);
+
+  // Filter and paginate products when search term or page changes
+  useEffect(() => {
+    if (allProducts.length > 0) {
+      filterAndPaginateProducts();
+    }
+  }, [searchTerm, pagination.current_page, allProducts]);
 
   const fetchProducts = async () => {
     setLoading(true);
     try {
+      // Fetch all products without pagination or search params
       const response = await productService.adminGetAll({
-        page: pagination.current_page,
-        limit: 12,
-        search: searchTerm || undefined,
+        page: 1,
+        limit: 1000, // Get all products
       });
 
       if (response.success) {
-        setProducts(response.data.products);
-        setPagination(response.data.pagination);
+        // Sort products alphabetically by name
+        const sortedProducts = response.data.products.sort((a, b) => 
+          a.name.localeCompare(b.name)
+        );
+        
+        setAllProducts(sortedProducts);
       }
     } catch (error) {
       console.error('Failed to fetch products:', error);
@@ -40,10 +54,70 @@ const ProductsList = () => {
     }
   };
 
+  const filterAndPaginateProducts = () => {
+    let filtered = [...allProducts];
+    
+    // Filter by search term (name or slug)
+    if (searchTerm.trim()) {
+      const searchLower = searchTerm.toLowerCase().trim();
+      filtered = filtered.filter(product => 
+        product.name.toLowerCase().includes(searchLower) ||
+        (product.slug && product.slug.toLowerCase().includes(searchLower))
+      );
+      
+      // Sort filtered results: exact matches first, then partial matches, all alphabetically
+      filtered.sort((a, b) => {
+        const aNameLower = a.name.toLowerCase();
+        const bNameLower = b.name.toLowerCase();
+        const aSlugLower = (a.slug || '').toLowerCase();
+        const bSlugLower = (b.slug || '').toLowerCase();
+        
+        // Check if product name or slug starts with search term (prioritize these)
+        const aStartsWith = aNameLower.startsWith(searchLower) || aSlugLower.startsWith(searchLower);
+        const bStartsWith = bNameLower.startsWith(searchLower) || bSlugLower.startsWith(searchLower);
+        
+        // Check for exact match
+        const aExactMatch = aNameLower === searchLower || aSlugLower === searchLower;
+        const bExactMatch = bNameLower === searchLower || bSlugLower === searchLower;
+        
+        // Priority: exact match > starts with > contains (all alphabetically within each group)
+        if (aExactMatch && !bExactMatch) return -1;
+        if (!aExactMatch && bExactMatch) return 1;
+        if (aStartsWith && !bStartsWith) return -1;
+        if (!aStartsWith && bStartsWith) return 1;
+        
+        // Within same priority level, sort alphabetically
+        return aNameLower.localeCompare(bNameLower);
+      });
+    }
+    
+    // Calculate pagination
+    const itemsPerPage = 12;
+    const totalPages = Math.ceil(filtered.length / itemsPerPage);
+    const startIndex = (pagination.current_page - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const paginatedProducts = filtered.slice(startIndex, endIndex);
+    
+    setProducts(paginatedProducts);
+    setPagination(prev => ({
+      ...prev,
+      total_pages: totalPages,
+      total: filtered.length,
+      has_prev: pagination.current_page > 1,
+      has_next: pagination.current_page < totalPages,
+    }));
+  };
+
   const handleSearch = (e) => {
     e.preventDefault();
+    // Reset to page 1 when searching
     setPagination(prev => ({ ...prev, current_page: 1 }));
-    fetchProducts();
+  };
+
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
+    // Reset to page 1 when search term changes
+    setPagination(prev => ({ ...prev, current_page: 1 }));
   };
 
   const handleDelete = async (id) => {
@@ -51,7 +125,10 @@ const ProductsList = () => {
       const response = await productService.adminDelete(id);
       if (response.success) {
         setDeleteConfirm(null);
-        fetchProducts();
+        // Refresh products after deletion
+        await fetchProducts();
+        // Reset to page 1 if current page becomes empty
+        setPagination(prev => ({ ...prev, current_page: 1 }));
       }
     } catch (error) {
       console.error('Failed to delete product:', error);
@@ -61,7 +138,38 @@ const ProductsList = () => {
 
   const handlePageChange = (newPage) => {
     setPagination(prev => ({ ...prev, current_page: newPage }));
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
+
+    const displayedProducts = searchTerm.trim() 
+    ? products.filter(product => 
+        product.name.toLowerCase().includes(searchTerm.toLowerCase().trim()) ||
+        (product.slug && product.slug.toLowerCase().includes(searchTerm.toLowerCase().trim()))
+      ).sort((a, b) => {
+        const searchLower = searchTerm.toLowerCase().trim();
+        const aNameLower = a.name.toLowerCase();
+        const bNameLower = b.name.toLowerCase();
+        const aSlugLower = (a.slug || '').toLowerCase();
+        const bSlugLower = (b.slug || '').toLowerCase();
+        
+        // Check if product name or slug starts with search term (prioritize these)
+        const aStartsWith = aNameLower.startsWith(searchLower) || aSlugLower.startsWith(searchLower);
+        const bStartsWith = bNameLower.startsWith(searchLower) || bSlugLower.startsWith(searchLower);
+        
+        // Check for exact match
+        const aExactMatch = aNameLower === searchLower || aSlugLower === searchLower;
+        const bExactMatch = bNameLower === searchLower || bSlugLower === searchLower;
+        
+        // Priority: exact match > starts with > contains (all alphabetically within each group)
+        if (aExactMatch && !bExactMatch) return -1;
+        if (!aExactMatch && bExactMatch) return 1;
+        if (aStartsWith && !bStartsWith) return -1;
+        if (!aStartsWith && bStartsWith) return 1;
+        
+        // Within same priority level, sort alphabetically
+        return aNameLower.localeCompare(bNameLower);
+      })
+    : products;
 
   return (
     <div className="p-8">
@@ -88,7 +196,7 @@ const ProductsList = () => {
             <input
               type="text"
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={handleSearchChange}
               placeholder="Search products by name or slug..."
               className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#181d54] focus:border-transparent"
             />
@@ -109,6 +217,12 @@ const ProductsList = () => {
         </div>
       ) : products.length > 0 ? (
         <>
+          {/* Results Count - ADDED THIS SECTION */}
+          <div className="text-center text-gray-600 mb-8">
+            Showing {displayedProducts.length} product{displayedProducts.length !== 1 ? 's' : ''}
+            {searchTerm.trim() && ` for "${searchTerm}"`}
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
             {products.map((product) => (
               <div

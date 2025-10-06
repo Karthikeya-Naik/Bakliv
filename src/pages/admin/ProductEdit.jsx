@@ -39,6 +39,7 @@ const ProductEdit = () => {
     image3: null,
     image4: null,
   });
+  const [deletedImages, setDeletedImages] = useState([]);
 
   useEffect(() => {
     fetchProduct();
@@ -50,31 +51,51 @@ const ProductEdit = () => {
       if (response.success) {
         const product = response.data;
         
+        // Debug: Check the actual data coming from backend
+        console.log('🔍 Product data from backend:', {
+          description: product.description,
+          descriptionLength: product.description?.length,
+          alt_text: product.alt_text,
+          long_description: product.long_description
+        });
+        
+        // Decode any HTML entities that might be stored in the database
+        const decodeHtmlEntities = (text) => {
+          if (!text) return '';
+          return text
+            .replace(/&amp;/g, '&')
+            .replace(/&lt;/g, '<')
+            .replace(/&gt;/g, '>')
+            .replace(/&quot;/g, '"')
+            .replace(/&#039;/g, "'")
+            .replace(/&apos;/g, "'")
+            .replace(/&#x27;/g, "'")
+            .replace(/&#x2F;/g, '/')
+            .replace(/&#96;/g, '`');
+        };
+        
         setFormData({
-          alt_text: product.alt_text || '',
-          description: product.description || '',
-          long_description: product.long_description || '',
-          disclaimer: product.disclaimer || '',
+          alt_text: decodeHtmlEntities(product.alt_text || ''),
+          description: decodeHtmlEntities(product.description || ''),
+          long_description: decodeHtmlEntities(product.long_description || ''),
+          disclaimer: decodeHtmlEntities(product.disclaimer || ''),
           slug: product.slug || '',
           price: product.price || '',
-          meta_info_title: product.meta?.title || '',
-          meta_info_description: product.meta?.description || '',
+          meta_info_title: decodeHtmlEntities(product.meta?.title || ''),
+          meta_info_description: decodeHtmlEntities(product.meta?.description || ''),
           meta_info_canonical: product.meta?.canonical || '',
         });
 
-        setExistingImages({
+        // Store the actual image paths from backend
+        const imagePaths = {
           image1: product.images.image1,
           image2: product.images.image2,
           image3: product.images.image3,
           image4: product.images.image4,
-        });
+        };
 
-        setImagePreviews({
-          image1: product.images.image1,
-          image2: product.images.image2,
-          image3: product.images.image3,
-          image4: product.images.image4,
-        });
+        setExistingImages(imagePaths);
+        setImagePreviews(imagePaths);
       }
     } catch (error) {
       console.error('Failed to fetch product:', error);
@@ -88,7 +109,6 @@ const ProductEdit = () => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
 
-    // Clear error for this field
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: null }));
     }
@@ -97,31 +117,40 @@ const ProductEdit = () => {
   const handleImageChange = (imageKey, file) => {
     console.log('🟡 handleImageChange called:', { imageKey, file });
     
-    // Check if file exists and is valid
     if (!file) {
       console.log('🔴 No file provided');
       setErrors(prev => ({ ...prev, [imageKey]: 'No file selected' }));
       return;
     }
 
-    // Validate file type
     if (!file.type || !file.type.startsWith('image/')) {
       console.log('🔴 Invalid file type:', file.type);
       setErrors(prev => ({ ...prev, [imageKey]: 'Please select an image file (JPEG, PNG, GIF, WebP)' }));
       return;
     }
 
-    // Validate file size (2.5MB)
     if (!file.size || file.size > 2.5 * 1024 * 1024) {
       console.log('🔴 File too large:', file.size);
       setErrors(prev => ({ ...prev, [imageKey]: 'Image size must be less than 2.5MB' }));
       return;
     }
 
-    // Update new images
+    // If there's an existing image being replaced, mark it for deletion
+    if (existingImages[imageKey]) {
+      console.log('🟡 Marking existing image for deletion:', existingImages[imageKey]);
+      setDeletedImages(prev => {
+        const newDeleted = [...prev];
+        const imagePath = existingImages[imageKey];
+        if (imagePath && !newDeleted.includes(imagePath)) {
+          newDeleted.push(imagePath);
+        }
+        return newDeleted;
+      });
+      setExistingImages(prev => ({ ...prev, [imageKey]: null }));
+    }
+
     setNewImages(prev => ({ ...prev, [imageKey]: file }));
 
-    // Create preview
     const reader = new FileReader();
     reader.onloadend = () => {
       setImagePreviews(prev => ({ ...prev, [imageKey]: reader.result }));
@@ -132,17 +161,29 @@ const ProductEdit = () => {
     };
     reader.readAsDataURL(file);
 
-    // Clear any previous errors for this image
     setErrors(prev => ({ ...prev, [imageKey]: null }));
   };
 
   const removeImage = (imageKey) => {
     console.log('🟡 Removing image:', imageKey);
+    
+    if (existingImages[imageKey]) {
+      const imagePath = existingImages[imageKey];
+      console.log('🟡 Marking existing image for deletion:', imagePath);
+      
+      setDeletedImages(prev => {
+        const newDeleted = [...prev];
+        if (imagePath && !newDeleted.includes(imagePath)) {
+          newDeleted.push(imagePath);
+        }
+        return newDeleted;
+      });
+    }
+    
+    // Clear all image states for this slot
+    setExistingImages(prev => ({ ...prev, [imageKey]: null }));
     setNewImages(prev => ({ ...prev, [imageKey]: null }));
     setImagePreviews(prev => ({ ...prev, [imageKey]: null }));
-    setExistingImages(prev => ({ ...prev, [imageKey]: null }));
-    
-    // Clear any errors for this image
     setErrors(prev => ({ ...prev, [imageKey]: null }));
   };
 
@@ -155,6 +196,8 @@ const ProductEdit = () => {
 
     if (!formData.description.trim()) {
       newErrors.description = 'Short description is required';
+    } else if (formData.description.length > 350) {
+      newErrors.description = 'Short description must be 350 characters or less';
     }
 
     if (!formData.slug.trim()) {
@@ -181,29 +224,64 @@ const ProductEdit = () => {
     setSubmitting(true);
 
     try {
-      // Create FormData
       const data = new FormData();
 
-      // Append form fields
-      Object.keys(formData).forEach(key => {
-        if (formData[key]) {
-          data.append(key, formData[key]);
+      // Debug: Check what we're sending to backend
+      console.log('🔍 Data being sent to backend:', {
+        description: formData.description,
+        descriptionLength: formData.description.length,
+        alt_text: formData.alt_text,
+        long_description: formData.long_description
+      });
+
+      // Encode special characters properly before sending to backend
+      const encodeSpecialChars = (text) => {
+        if (!text) return text;
+        return text
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#039;');
+      };
+
+      // Append form data with proper encoding
+      const encodedFormData = {
+        ...formData,
+        alt_text: encodeSpecialChars(formData.alt_text),
+        description: encodeSpecialChars(formData.description),
+        long_description: encodeSpecialChars(formData.long_description),
+        disclaimer: encodeSpecialChars(formData.disclaimer),
+        meta_info_title: encodeSpecialChars(formData.meta_info_title),
+        meta_info_description: encodeSpecialChars(formData.meta_info_description),
+      };
+
+      Object.keys(encodedFormData).forEach(key => {
+        if (encodedFormData[key] !== null && encodedFormData[key] !== undefined) {
+          data.append(key, encodedFormData[key]);
         }
       });
 
-      // Append new images only (backend will keep existing ones if not replaced)
+      // Append new images
       Object.keys(newImages).forEach(key => {
         if (newImages[key]) {
-          console.log('🟡 Appending image:', key, newImages[key]);
+          console.log('🟡 Appending new image:', key, newImages[key].name);
           data.append(key, newImages[key]);
         }
       });
+
+      // Append deleted images
+      if (deletedImages.length > 0) {
+        console.log('🟡 Sending deleted images:', deletedImages);
+        data.append('deleted_images', JSON.stringify(deletedImages));
+      }
 
       console.log('🟡 Submitting form data...');
       const response = await productService.adminUpdate(id, data);
 
       if (response.success) {
         console.log('🟢 Product updated successfully');
+        console.log('🔍 Response from backend:', response.data);
         navigate('/admin/products');
       } else {
         console.log('🔴 Update failed:', response.message);
@@ -234,7 +312,6 @@ const ProductEdit = () => {
 
   return (
     <div className="p-8 max-w-5xl mx-auto">
-      {/* Header */}
       <div className="mb-8">
         <Link
           to="/admin/products"
@@ -247,9 +324,7 @@ const ProductEdit = () => {
         <p className="text-gray-600 mt-1">Update product information</p>
       </div>
 
-      {/* Form */}
       <form onSubmit={handleSubmit}>
-        {/* General Error */}
         {errors.submit && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6 flex items-start space-x-3">
             <AlertCircle className="text-red-500 flex-shrink-0 mt-0.5" size={20} />
@@ -257,12 +332,10 @@ const ProductEdit = () => {
           </div>
         )}
 
-        {/* Basic Information */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
           <h2 className="text-xl font-bold text-gray-900 mb-4">Basic Information</h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Product Name */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Product Name <span className="text-red-500">*</span>
@@ -282,7 +355,6 @@ const ProductEdit = () => {
               )}
             </div>
 
-            {/* Slug */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Slug <span className="text-red-500">*</span>
@@ -302,7 +374,6 @@ const ProductEdit = () => {
               )}
             </div>
 
-            {/* Price */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Price (₹) <span className="text-red-500">*</span>
@@ -324,28 +395,29 @@ const ProductEdit = () => {
             </div>
           </div>
 
-          {/* Short Description */}
           <div className="mt-6">
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Short Description <span className="text-red-500">*</span>
+              <span className="text-xs text-gray-500 ml-2">
+                {formData.description.length}/350 characters
+              </span>
             </label>
-            <input
-              type="text"
+            <textarea
               name="description"
               value={formData.description}
               onChange={handleInputChange}
-              maxLength={255}
+              maxLength={350}
+              rows={4}
               className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#181d54] focus:border-transparent ${
                 errors.description ? 'border-red-300' : 'border-gray-300'
               }`}
-              placeholder="Brief description for product listing"
+              placeholder="Brief description for product listing (max 350 characters)"
             />
             {errors.description && (
               <p className="text-red-500 text-sm mt-1">{errors.description}</p>
             )}
           </div>
 
-          {/* Long Description */}
           <div className="mt-6">
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Full Description
@@ -356,11 +428,10 @@ const ProductEdit = () => {
               onChange={handleInputChange}
               rows={8}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#181d54] focus:border-transparent"
-              placeholder="Detailed product information, usage instructions, etc."
+              placeholder="Detailed product information, usage instructions, etc. Special characters like ', @, ? will be preserved."
             />
           </div>
 
-          {/* Disclaimer */}
           <div className="mt-6">
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Disclaimer
@@ -371,12 +442,11 @@ const ProductEdit = () => {
               onChange={handleInputChange}
               rows={3}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#181d54] focus:border-transparent"
-              placeholder="Medical disclaimer or important warnings"
+              placeholder="Medical disclaimer or important warnings. Special characters like ', @, ? will be preserved."
             />
           </div>
         </div>
 
-        {/* Product Images */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
           <ProductImageUpload
             images={newImages}
@@ -387,12 +457,10 @@ const ProductEdit = () => {
           />
         </div>
 
-        {/* SEO / Meta Information */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
           <h2 className="text-xl font-bold text-gray-900 mb-4">SEO Information</h2>
 
           <div className="space-y-6">
-            {/* Meta Title */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Meta Title
@@ -408,7 +476,6 @@ const ProductEdit = () => {
               />
             </div>
 
-            {/* Meta Description */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Meta Description
@@ -424,7 +491,6 @@ const ProductEdit = () => {
               />
             </div>
 
-            {/* Canonical URL */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Canonical URL
@@ -441,7 +507,6 @@ const ProductEdit = () => {
           </div>
         </div>
 
-        {/* Submit Buttons */}
         <div className="flex items-center justify-end space-x-4">
           <Link
             to="/admin/products"

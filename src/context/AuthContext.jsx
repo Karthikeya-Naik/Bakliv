@@ -16,8 +16,9 @@ export const AuthProvider = ({ children }) => {
       console.log('🟡 AuthContext: Auth check response:', response);
       
       if (response.success) {
-        setAdmin(response.data.admin);
+        setAdmin(response.data.admin || response.data.data?.admin); // ✅
         setIsAuthenticated(true);
+
         console.log('🟢 AuthContext: User is authenticated');
         return { success: true };
       } else {
@@ -51,14 +52,16 @@ export const AuthProvider = ({ children }) => {
       console.log('🟡 AuthContext: Login response:', response);
       
       if (response.success) {
-        setAdmin(response.data.admin);
+        setAdmin(response.data.admin || response.data.data?.admin);
         setIsAuthenticated(true);
-        
+
         // Store JWT token
-        if (response.data.token) {
-          sessionStorage.setItem('auth_token', response.data.token);
+        const token = response.data.token || response.data.data?.token;
+        if (token) {
+          sessionStorage.setItem('auth_token', token);
           console.log('🟢 AuthContext: JWT token stored');
         }
+
         
         console.log('🟢 AuthContext: Login successful');
         return { success: true };

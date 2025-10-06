@@ -1,6 +1,8 @@
 import React from 'react';
 import { Mail, Phone, MapPin, Facebook, Twitter, Linkedin, Instagram } from 'lucide-react';
 import Container from '../ui/Container';
+import logo from '../../assets/logo.png';
+import { Link, useLocation } from 'react-router-dom'; 
 
 const Footer = () => {
   const quickLinks = [
@@ -69,7 +71,8 @@ const Footer = () => {
               </p>
               <button className="bg-blue-950 text-white px-6 py-2 rounded-lg hover:bg-blue-900 transition-colors duration-300 flex items-center space-x-2">
                 <Phone size={16} />
-                <span>Get in Touch</span>
+                <span> <Link 
+              to="/contact">Get in Touch</Link></span>
               </button>
             </div>
           </div>
@@ -82,13 +85,13 @@ const Footer = () => {
           <div className="py-8 flex flex-col md:flex-row justify-between items-center">
             <div className="flex items-center mb-4 md:mb-0">
               <img 
-                src="/src/assets/logo.png" 
+                src={logo}
                 alt="BAKLIV Logo" 
                 className="h-8 w-auto"
               />
             </div>
             <div className="text-gray-500 text-sm font-light">
-              Copyright © 2024. All rights reserved to BAKLIV
+              @BAKLIV. All rights reserved.
             </div>
           </div>
         </Container>

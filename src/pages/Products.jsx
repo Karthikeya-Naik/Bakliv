@@ -7,11 +7,6 @@ const Products = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [pagination, setPagination] = useState({
-    current_page: 1,
-    total_pages: 1,
-    total: 0,
-  });
   const [hoveredProduct, setHoveredProduct] = useState(null);
   const [currentImageIndex, setCurrentImageIndex] = useState({});
   
@@ -19,23 +14,33 @@ const Products = () => {
 
   useEffect(() => {
     fetchProducts();
-  }, [pagination.current_page]);
+  }, []);
+
+  // Filter products when search term changes
+  useEffect(() => {
+    filterProducts();
+  }, [searchTerm]);
 
   const fetchProducts = async () => {
     setLoading(true);
     try {
+      // Fetch all products without pagination
       const response = await productService.getAll({
-        page: pagination.current_page,
-        limit: 12,
-        search: searchTerm || undefined,
+        page: 1,
+        limit: 1000, // Get all products
       });
 
       if (response.success) {
-        setProducts(response.data.products);
-        setPagination(response.data.pagination);
+        // Sort products alphabetically by name
+        const sortedProducts = response.data.products.sort((a, b) => 
+          a.name.localeCompare(b.name)
+        );
+        
+        setProducts(sortedProducts);
+        
         // Initialize image indices
         const indices = {};
-        response.data.products.forEach(product => {
+        sortedProducts.forEach(product => {
           indices[product.id] = 0;
         });
         setCurrentImageIndex(indices);
@@ -47,19 +52,26 @@ const Products = () => {
     }
   };
 
+  const filterProducts = () => {
+    if (!searchTerm.trim()) {
+      // If no search term, show all products
+      return;
+    }
+
+    // Filter logic is handled in the displayedProducts calculation
+  };
+
   const handleSearch = (e) => {
     e.preventDefault();
-    setPagination(prev => ({ ...prev, current_page: 1 }));
-    fetchProducts();
+    // Search is handled by the useEffect
+  };
+
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
   };
 
   const handleProductClick = (product) => {
     navigate(`/product/${product.slug}`);
-  };
-
-  const handlePageChange = (newPage) => {
-    setPagination(prev => ({ ...prev, current_page: newPage }));
-    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleImageNavigation = (e, productId, direction, images) => {
@@ -88,6 +100,37 @@ const Products = () => {
     return [];
   };
 
+  // Get displayed products (all or filtered)
+  const displayedProducts = searchTerm.trim() 
+    ? products.filter(product => 
+        product.name.toLowerCase().includes(searchTerm.toLowerCase().trim()) ||
+        (product.slug && product.slug.toLowerCase().includes(searchTerm.toLowerCase().trim()))
+      ).sort((a, b) => {
+        const searchLower = searchTerm.toLowerCase().trim();
+        const aNameLower = a.name.toLowerCase();
+        const bNameLower = b.name.toLowerCase();
+        const aSlugLower = (a.slug || '').toLowerCase();
+        const bSlugLower = (b.slug || '').toLowerCase();
+        
+        // Check if product name or slug starts with search term (prioritize these)
+        const aStartsWith = aNameLower.startsWith(searchLower) || aSlugLower.startsWith(searchLower);
+        const bStartsWith = bNameLower.startsWith(searchLower) || bSlugLower.startsWith(searchLower);
+        
+        // Check for exact match
+        const aExactMatch = aNameLower === searchLower || aSlugLower === searchLower;
+        const bExactMatch = bNameLower === searchLower || bSlugLower === searchLower;
+        
+        // Priority: exact match > starts with > contains (all alphabetically within each group)
+        if (aExactMatch && !bExactMatch) return -1;
+        if (!aExactMatch && bExactMatch) return 1;
+        if (aStartsWith && !bStartsWith) return -1;
+        if (!aStartsWith && bStartsWith) return 1;
+        
+        // Within same priority level, sort alphabetically
+        return aNameLower.localeCompare(bNameLower);
+      })
+    : products;
+
   return (
     <div className="min-h-screen bg-white">
       {/* Hero Section with Search */}
@@ -102,7 +145,7 @@ const Products = () => {
                 type="text"
                 placeholder="Search for medicines..."
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={handleSearchChange}
                 className="w-full px-6 py-4 pr-12 rounded-lg text-gray-800 text-lg focus:outline-none focus:ring-2 focus:ring-white shadow-lg"
               />
               <button
@@ -123,10 +166,11 @@ const Products = () => {
             <div className="flex items-center justify-center h-64">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#181d54]"></div>
             </div>
-          ) : products.length > 0 ? (
+          ) : displayedProducts.length > 0 ? (
             <>
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
-                {products.map(product => {
+
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {displayedProducts.map(product => {
                   const images = getProductImages(product);
                   const currentIndex = currentImageIndex[product.id] || 0;
                   const hasMultipleImages = images.length > 1;
@@ -139,13 +183,13 @@ const Products = () => {
                       onMouseLeave={() => setHoveredProduct(null)}
                       className="bg-white rounded-lg shadow-md hover:shadow-xl transition-all duration-300 cursor-pointer group overflow-hidden border border-gray-200"
                     >
-                      <div className="relative w-full h-80 bg-gradient-to-br from-gray-50 to-white overflow-hidden">
+                      <div className="relative w-full h-80 bg-white overflow-hidden">
                         {images.length > 0 ? (
                           <>
                             <img 
                               src={images[currentIndex]} 
                               alt={product.name}
-                              className="w-full h-full object-contain p-4 group-hover:opacity-95 transition-opacity duration-200"
+                              className="w-full h-full object-contain group-hover:opacity-95 transition-opacity duration-200"
                             />
                             
                             {/* Image Navigation Controls */}
@@ -163,18 +207,6 @@ const Products = () => {
                                 >
                                   <ChevronRight size={20} />
                                 </button>
-                                
-                                {/* Image Indicators */}
-                                {/* <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
-                                  {images.map((_, idx) => (
-                                    <div
-                                      key={idx}
-                                      className={`w-2 h-2 rounded-full ${
-                                        idx === currentIndex ? 'bg-[#181d54]' : 'bg-gray-300'
-                                      }`}
-                                    />
-                                  ))}
-                                </div> */}
                               </>
                             )}
                           </>
@@ -186,7 +218,7 @@ const Products = () => {
                       </div>
                       
                       <div className="p-6">
-                        <h3 className="text-lg font-medium text-[#181d54] mb-2">{product.name}</h3>
+                        <h1 className="text-lg font-medium text-[#181d54] mb-2">{product.name}</h1>
                         <p className="text-gray-600 mb-4 text-sm leading-relaxed line-clamp-2">
                           {product.description}
                         </p>
@@ -202,37 +234,6 @@ const Products = () => {
                   );
                 })}
               </div>
-
-              {/* Pagination */}
-              {pagination.total_pages > 1 && (
-                <div className="flex items-center justify-center space-x-4">
-                  <button
-                    onClick={() => handlePageChange(pagination.current_page - 1)}
-                    disabled={!pagination.has_prev}
-                    className="px-4 py-2 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors flex items-center space-x-2"
-                  >
-                    <ChevronLeft size={20} />
-                    <span>Previous</span>
-                  </button>
-                  
-                  <div className="flex items-center space-x-2">
-                    <span className="text-gray-600">Page</span>
-                    <span className="px-4 py-2 bg-[#181d54] text-white rounded-lg font-medium">
-                      {pagination.current_page}
-                    </span>
-                    <span className="text-gray-600">of {pagination.total_pages}</span>
-                  </div>
-
-                  <button
-                    onClick={() => handlePageChange(pagination.current_page + 1)}
-                    disabled={!pagination.has_next}
-                    className="px-4 py-2 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors flex items-center space-x-2"
-                  >
-                    <span>Next</span>
-                    <ChevronRight size={20} />
-                  </button>
-                </div>
-              )}
             </>
           ) : (
             <div className="text-center py-16">

@@ -67,20 +67,20 @@ const ProductDetail = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#181d54]"></div>
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="animate-spin rounded-full h-10 w-10 border-2 border-[#181d54] border-t-transparent"></div>
       </div>
     );
   }
 
   if (error || !product) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">{error || 'Product not found'}</h2>
+          <h2 className="text-xl font-medium text-gray-900 mb-4">{error || 'Product not found'}</h2>
           <button
             onClick={handleBack}
-            className="bg-[#181d54] text-white px-6 py-3 rounded-lg font-medium hover:bg-[#202566] transition-colors"
+            className="bg-[#181d54] text-white px-6 py-2.5 rounded-md text-sm hover:bg-[#202566] transition-colors"
           >
             Back to Products
           </button>
@@ -92,29 +92,33 @@ const ProductDetail = () => {
   const hasMultipleImages = product.images && product.images.length > 1;
 
   return (
-    <div className="min-h-screen bg-white">
-      {/* Breadcrumb */}
-      <div className="bg-gray-50 py-4">
-        <div className="max-w-7xl mx-auto px-4">
-          <button 
-            onClick={handleBack}
-            className="text-[#181d54] hover:underline font-medium flex items-center space-x-2"
-          >
-            <ArrowLeft size={20} />
-            <span>Back to Products</span>
-          </button>
-        </div>
+    <div className="min-h-screen bg-gray-50">
+      {/* Back to Products Link - ADDED THIS SECTION */}
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-6">
+        <button
+          onClick={handleBack}
+          className="inline-flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors mb-4"
+        >
+          <ArrowLeft size={20} />
+          <span className="font-medium">Back to Products</span>
+        </button>
       </div>
 
-      {/* Product Detail Section */}
-      <section className="py-12">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="grid md:grid-cols-2 gap-12">
-            {/* Image Gallery */}
-            <div>
-              {/* Main Image */}
+      {/* Main Container */}
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-4 sm:py-8">
+        {/* Product Card */}
+        <div className="bg-white rounded-xl shadow-sm overflow-hidden mb-6">
+          <div className="p-8">
+            {/* Product Header */}
+            <div className="mb-0">
+              <h1 className="text-3xl font-bold text-[#181d54] mb-3">{product.name}</h1>
+              <p className="text-gray-600 text-sm">{product.description}</p>
+            </div>
+
+            {/* Image Gallery Section */}
+            <div className="mb-8">
               <div 
-                className="bg-gradient-to-br from-gray-50 to-white rounded-lg overflow-hidden mb-4 relative"
+                className="bg-white rounded-lg relative mb-4"
                 onMouseEnter={() => setIsHovering(true)}
                 onMouseLeave={() => setIsHovering(false)}
               >
@@ -123,38 +127,34 @@ const ProductDetail = () => {
                     <img 
                       src={product.images[selectedImageIndex]} 
                       alt={product.name}
-                      className="w-full h-96 object-contain p-6"
+                      className="w-full h-96 object-contain p-0"
                     />
                     
-                    {/* Navigation Buttons */}
                     {hasMultipleImages && isHovering && (
                       <>
                         <button
                           onClick={() => handleImageNavigation('prev')}
-                          className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white bg-opacity-90 hover:bg-opacity-100 text-gray-800 p-3 rounded-full shadow-lg transition-all z-10"
+                          className="absolute left-4 top-1/2 -translate-y-1/2 bg-white hover:bg-gray-50 p-2.5 rounded-full shadow-md transition-all"
                         >
-                          <ChevronLeft size={24} />
+                          <ChevronLeft size={20} />
                         </button>
                         <button
                           onClick={() => handleImageNavigation('next')}
-                          className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white bg-opacity-90 hover:bg-opacity-100 text-gray-800 p-3 rounded-full shadow-lg transition-all z-10"
+                          className="absolute right-4 top-1/2 -translate-y-1/2 bg-white hover:bg-gray-50 p-2.5 rounded-full shadow-md transition-all"
                         >
-                          <ChevronRight size={24} />
+                          <ChevronRight size={20} />
                         </button>
                       </>
                     )}
 
-                    {/* Image Indicators */}
                     {hasMultipleImages && (
-                      <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 flex space-x-2">
+                      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
                         {product.images.map((_, idx) => (
                           <button
                             key={idx}
                             onClick={() => setSelectedImageIndex(idx)}
-                            className={`w-2.5 h-2.5 rounded-full transition-all ${
-                              idx === selectedImageIndex 
-                                ? 'bg-[#181d54] w-8' 
-                                : 'bg-gray-400 hover:bg-gray-600'
+                            className={`w-2 h-2 rounded-full transition-all ${
+                              idx === selectedImageIndex ? 'bg-[#181d54] w-6' : 'bg-gray-400'
                             }`}
                           />
                         ))}
@@ -162,105 +162,80 @@ const ProductDetail = () => {
                     )}
                   </>
                 ) : (
-                  <div className="w-full h-96 flex items-center justify-center text-gray-400">
+                  <div className="w-full h-80 flex items-center justify-center text-gray-400">
                     No Image Available
                   </div>
                 )}
               </div>
               
-              {/* Thumbnail Images */}
               {hasMultipleImages && (
-                <div className="grid grid-cols-4 gap-4">
+                <div className="grid grid-cols-5 gap-2">
                   {product.images.map((img, index) => (
-                    <div 
+                    <button 
                       key={index}
                       onClick={() => setSelectedImageIndex(index)}
-                      className={`cursor-pointer rounded-lg overflow-hidden border-2 transition-all ${
-                        selectedImageIndex === index 
-                          ? 'border-[#181d54] shadow-md' 
-                          : 'border-gray-200 hover:border-gray-400'
+                      className={`rounded-md border-2 overflow-hidden transition-all ${
+                        selectedImageIndex === index ? 'border-[#181d54]' : 'border-gray-200 hover:border-gray-300'
                       }`}
                     >
                       <img 
                         src={img} 
-                        alt={`${product.name} view ${index + 1}`}
-                        className="w-full h-24 object-contain p-2 bg-white"
+                        alt={`View ${index + 1}`}
+                        className="w-full h-16 object-contain p-1.5 bg-white"
                       />
-                    </div>
+                    </button>
                   ))}
                 </div>
               )}
             </div>
 
-            {/* Product Information */}
-            <div>
-              <h1 className="text-4xl font-light text-[#181d54] mb-4">{product.name}</h1>
-
-              {/* Short Description */}
-              <div className="mb-6">
-                <p className="text-lg text-gray-700 leading-relaxed">{product.description}</p>
-              </div>
-
-              {/* Description */}
-              {product.fullDescription && (
-                <div className="prose prose-lg mb-8">
-                  <h2 className="text-2xl font-light text-[#181d54] mb-4">Description</h2>
-                  <div className="text-gray-700 leading-relaxed space-y-4">
-                    {product.fullDescription.split('\n\n').map((paragraph, index) => (
-                      <p key={index}>{paragraph}</p>
-                    ))}
-                  </div>
+            {/* Description */}
+            {product.fullDescription && (
+              <div className="mb-8">
+                <h2 className="text-xl font-bold text-[#181d54] mb-3">Description</h2>
+                <div className="text-gray-700 space-y-3 text-sm leading-relaxed">
+                  {product.fullDescription.split('\n\n').map((paragraph, index) => (
+                    <p key={index}>{paragraph}</p>
+                  ))}
                 </div>
-              )}
+              </div>
+            )}
 
-              {/* Medical Supervision Message */}
-              <div className="bg-blue-50 border-l-4 border-blue-500 p-6 mb-8">
-                <p className="text-blue-900 font-semibold text-lg mb-2">Medical Supervision Required</p>
-                <p className="text-blue-800 leading-relaxed">
-                  This product should only be used under proper medical supervision. Please consult with a healthcare professional before use.
-                </p>
+            {/* Medical Alert */}
+            <div className="bg-white-50  px-0 py-3 rounded-r-lg">
+              <div className="flex items-start">
+                <div className="flex-shrink-0 mt-0.5">
+                  <svg className="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <div className="ml-3">
+                  <h3 className="text-sm font-semibold text-[#010172]">Medical Supervision Required</h3>
+                  <p className="text-sm text-[#010176] mt-1 font-light ">
+                    This product should only be used under proper medical supervision. Please consult with a healthcare professional before use.
+                  </p>
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </section>
 
-      {/* Additional Info Section */}
-      <section className="py-12 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4">
-          <h2 className="text-2xl font-light text-[#181d54] mb-6 text-center">Important Information</h2>
-          <div className="grid md:grid-cols-3 gap-6">
-            <div className="bg-white p-6 rounded-lg border border-gray-200">
-              <h3 className="font-semibold text-[#181d54] mb-3">Prescription Required</h3>
-              <p className="text-gray-600 text-sm">This medication requires a valid prescription from a licensed healthcare provider.</p>
-            </div>
-            <div className="bg-white p-6 rounded-lg border border-gray-200">
-              <h3 className="font-semibold text-[#181d54] mb-3">Professional Guidance</h3>
-              <p className="text-gray-600 text-sm">Always follow your doctor's instructions regarding dosage and duration of treatment.</p>
-            </div>
-            <div className="bg-white p-6 rounded-lg border border-gray-200">
-              <h3 className="font-semibold text-[#181d54] mb-3">Safety First</h3>
-              <p className="text-gray-600 text-sm">Report any adverse effects to your healthcare provider immediately.</p>
-            </div>
+        {/* Information Cards */}
+        <div className="grid md:grid-cols-3 gap-4">
+          <div className="bg-white rounded-lg shadow-sm p-6">
+            <h3 className="font-semibold text-[#181d54] text-sm mb-2">Prescription Required</h3>
+            <p className="text-gray-600 text-xs leading-relaxed">This medication requires a valid prescription from a licensed healthcare provider.</p>
+          </div>
+          <div className="bg-white rounded-lg shadow-sm p-6">
+            <h3 className="font-semibold text-[#181d54] text-sm mb-2">Professional Guidance</h3>
+            <p className="text-gray-600 text-xs leading-relaxed">Always follow your doctor's instructions regarding dosage and duration of treatment.</p>
+          </div>
+          <div className="bg-white rounded-lg shadow-sm p-6">
+            <h3 className="font-semibold text-[#181d54] text-sm mb-2">Safety First</h3>
+            <p className="text-gray-600 text-xs leading-relaxed">Report any adverse effects to your healthcare provider immediately.</p>
           </div>
         </div>
-      </section>
-
-      {/* Contact CTA */}
-      <section className="py-16 bg-white">
-        <div className="max-w-7xl mx-auto px-4 text-center">
-          <h2 className="text-2xl font-light text-[#181d54] mb-4">Have Questions?</h2>
-          <p className="text-gray-600 mb-6 max-w-2xl mx-auto">
-            Contact us for more information about this product or any medical consultation
-          </p>
-          <button
-            onClick={() => navigate('/contact')}
-            className="bg-[#181d54] text-white px-8 py-3 font-medium hover:bg-[#202566] transition-colors duration-200"
-          >
-            Contact Us
-          </button>
-        </div>
-      </section>
+      </div>
     </div>
   );
 };
