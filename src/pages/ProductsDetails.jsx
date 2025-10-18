@@ -499,7 +499,7 @@ const ProductDetail = () => {
                 "price": "${product.price || ""}",
                 "availability": "https://schema.org/InStock",
                 "priceCurrency": "INR"
-              }
+              },
               "aggregateRating": {
                     "@type": "AggregateRating",
                     "ratingValue": "5",
