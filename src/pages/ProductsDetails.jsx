@@ -493,17 +493,6 @@ const ProductDetail = () => {
               "brand": {
                 "@type": "Brand",
                 "name": "BAKLIV PHARMA"
-              },
-              "offers": {
-                "@type": "Offer",
-                "price": "${product.price || ""}",
-                "availability": "https://schema.org/InStock",
-                "priceCurrency": "INR"
-              },
-              "aggregateRating": {
-                    "@type": "AggregateRating",
-                    "ratingValue": "5",
-                    "reviewCount": "1"
               }
             }
           `}
