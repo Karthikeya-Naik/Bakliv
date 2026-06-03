@@ -456,47 +456,34 @@ const ProductDetail = () => {
 
   return (
     <>
-      {/* Helmet for meta tags */}
       <Helmet>
         <title>{metaTitle}</title>
+
         <meta name="description" content={metaDescription} />
-        <meta name="keywords" content={`${product.name}, pharmaceuticals, medicines, healthcare, BAKLIV`} />
+        <meta
+          name="keywords"
+          content={`${product.name}, pharmaceuticals, medicines, healthcare, BAKLIV`}
+        />
+
         <link rel="canonical" href={canonicalUrl} />
-        
-        {/* Open Graph Tags */}
+
         <meta property="og:title" content={metaTitle} />
         <meta property="og:description" content={metaDescription} />
         <meta property="og:url" content={canonicalUrl} />
-        <meta property="og:type" content="product" />
+        <meta property="og:type" content="website" />
         <meta name="robots" content="index, follow" />
+
         {product.images && product.images.length > 0 && (
           <meta property="og:image" content={product.images[0]} />
         )}
-        
-        {/* Twitter Card Tags */}
+
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content={metaTitle} />
         <meta name="twitter:description" content={metaDescription} />
+
         {product.images && product.images.length > 0 && (
           <meta name="twitter:image" content={product.images[0]} />
         )}
-        
-        {/* Structured Data */}
-        <script type="application/ld+json">
-          {`
-            {
-              "@context": "https://schema.org",
-              "@type": "Product",
-              "name": "${product.name}",
-              "description": "${product.description.replace(/"/g, '\\"')}",
-              "image": ${JSON.stringify(product.images || [])},
-              "brand": {
-                "@type": "Brand",
-                "name": "BAKLIV PHARMA"
-              }
-            }
-          `}
-        </script>
       </Helmet>
 
       <div className="min-h-screen bg-gray-50">
